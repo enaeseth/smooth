@@ -4,7 +4,7 @@
 // Copyright © 2008 Carleton College.
 
 class Smooth {
-    public const VERSION = '0.1.0';
+    const VERSION = '0.1.0';
 }
 
 smooth_load('application');
