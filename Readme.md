@@ -6,7 +6,7 @@ Smooth is a small Web framework for PHP. Smooth follows the MVC paradigm, but on
 Smooth was created for use on one particular project and has little other reason for existing.
 
 License
-------
+-------
 
 Smooth is made available under the terms of the MIT License.
 
