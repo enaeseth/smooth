@@ -26,21 +26,14 @@ class SmoothPatternRouter extends SmoothRouter {
     }
     
     private function loadRoutes() {
-        $file = $this->getRouteFile();
+        $file = $this->getRouteFile(array('conf', 'txt'));
         if (!$file) {
             throw new SmoothSetupException('No routes file exists.');
         }
         
-        $raw = yaml_load($file);
-        foreach ($raw as $name => $route) {
-            if (!is_array($route)) {
-                throw new SmoothSetupException('Invalid route "'.$route.'".');
-            }
-            
-            $path = array_keys($route);
-            $path = $path[0];
-            $spec = $route[$path];
-            
+        $reader = new SmoothPatternFileReader($file);
+        foreach ($reader as $entry) {
+            $path = $entry['path'];
             $matches = array();
             preg_match_all('#(\(.+?\))?:(\w+)#', $path, $matches,
                 PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
@@ -65,8 +58,159 @@ class SmoothPatternRouter extends SmoothRouter {
                 $pattern .= '/?';
             $pattern .= '$#';
             
-            $this->table[] = new SmoothPatternEntry($pattern, $groups, $spec);
+            $this->table[] = new SmoothPatternEntry($entry['name'],
+                $pattern, $groups, $entry['spec']);
         }
+    }
+}
+
+class SmoothPatternFileReader implements Iterator {
+    public $filename;
+    
+    // State:
+    private $handle;
+    private $line;
+    private $last;
+    private $done;
+    private $counter;
+    
+    public function __construct($filename) {
+        $this->filename = $filename;
+    }
+    
+    private function open() {
+        $this->close();
+        $h = fopen($this->filename, 'rt');
+        if ($h === false) {
+            throw new SmoothSetupException('Failed to open routes file "'.
+                $this->filename.'".');
+        }
+        $this->handle = $h;
+        $this->line = 0;
+        $this->last = null;
+        $this->done = false;
+        $this->counter = 0;
+    }
+    
+    private function close() {
+        if ($this->handle) {
+            fclose($this->handle);
+            $this->handle = null;
+        }
+    }
+    
+    private function readLine() {
+        if ($this->last) {
+            $line = $this->last;
+            $this->last = null;
+            return $line;
+        }
+        
+        if (!$this->handle) {
+            throw new RuntimeException('Tried to read from a closed file '.
+                'in SmoothPatternFileReader.');
+        }
+        
+        while ($line = fgets($this->handle)) {
+            ++$this->line;
+            // Skip comments:
+            if (!preg_match('/^\s*#/', $line))
+                break;
+        }
+        return $line;
+    }
+    
+    private function stashLine($line) {
+        if ($this->last !== null) {
+            $e = trim($this->last);
+            $n = trim($line);
+            throw new RuntimeException('Tried to stash the line "'.$n.'" on '.
+                'top of "'.$e.'" in SmoothPatternFileReader.');
+        }
+        $this->last = $line;
+    }
+    
+    public function rewind() {
+        $this->open();
+    }
+    
+    public function valid() {
+        if (!$this->handle)
+            return false;
+        $end = feof($this->handle);
+        if ($end)
+            $this->close();
+        return !$end;
+    }
+    
+    public function next() {
+        ++$this->counter;
+    }
+    
+    public function key() {
+        return $this->counter;
+    }
+    
+    public function current() {
+        $line = $this->readLine();
+        if (!$line)
+            return null;
+        
+        if (preg_match('/^\s/', $line)) {
+            throw new SmoothSetupException('Illegal indentation on line '.
+                $this->line.' of routes file "'.$this->filename.'".');
+        }
+        
+        $result = array();
+        $matches = array();
+        if (preg_match('/(\w+):/', $line, $matches)) {
+            $result['name'] = $matches[1];
+        } else {
+            $result['name'] = null;
+        }
+        
+        $line = preg_replace('/^(-|\w+:)\s*/', '', $line);
+        $parts = preg_split('/\s*=>\s*/', $line, 2);
+        
+        if (count($parts) == 1) {
+            $result['path'] = rtrim($parts[0]);
+            $result['spec'] = array();
+        } else {
+            $result['path'] = $parts[0];
+            
+            if (preg_match('/^\{.*\}$/', $parts[1])) {
+                $result['spec'] = yaml_load($parts[1]);
+            } else {
+                list($controller, $action) = explode('/', rtrim($parts[1]));
+                $result['spec'] = array(
+                    'controller' => $controller,
+                    'action' => $action
+                );
+            }
+        }
+        
+        $post = '';
+        $indent = null;
+        $matches = array();
+        while ($line = $this->readLine()) {
+            if (!preg_match('/^\s+/', $line, $matches)) {
+                // This is not an indented block
+                $this->stashLine($line);
+                break;
+            } else if (!$indent) {
+                // Define the indent for the first element; we'll strip it from
+                // the starts of all elements.
+                $indent = strlen($matches[0]);
+            }
+            
+            $post .= substr($line, $indent);
+        }
+        
+        if (strlen($post) > 0) {
+            $result['spec'] = array_merge($result['spec'], yaml_load($post));
+        }
+        
+        return $result;
     }
 }
 
