@@ -52,11 +52,12 @@ class SmoothApplication {
         $controller = new $controller_class($controller, $this,
             $request, $response);
         
-        $action = $controller['action'];
-        $method = $reflector->getMethod($action);
-        if (!$method) {
-            throw new SmoothException("Controller $route[controller] ".
-                "($controller_class) does not implement $action.");
+        $action = $route['action'];
+        try {
+            $method = $reflector->getMethod($action);
+        } catch (ReflectionException $e) {
+            throw new SmoothSetupException("Controller '$route[controller]' ".
+                "($controller_class) does not implement action '$action'.");
         }
         
         $args = array();
