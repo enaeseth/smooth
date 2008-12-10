@@ -87,7 +87,12 @@ class SmoothApplication {
         }
         
         if (!class_exists($class_name)) {
-            require_once path_join($this->root, 'controllers', $name);
+            $path = path_join($this->root, 'controllers', "$name.php");
+            if (!file_exists($path)) {
+                throw new SmoothControllerMissingException($name, $class_name,
+                    $path);
+            }
+            require_once $path;
         }
         
         return $class_name;
