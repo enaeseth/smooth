@@ -41,9 +41,15 @@ class SmoothApplication {
             }
         }
         
-        $controller_class = $this->loadController($route['controller']);
-        $reflector = new ReflectionClass($controller_class);
-        $controller = new $controller_class($route['controller'], $this,
+        $controller = $route['controller'];
+        $controller_class = $this->loadController($controller);
+        try {
+           $reflector = new ReflectionClass($controller_class); 
+        } catch (ReflectionException $e) {
+            throw new SmoothControllerClassMissingException($controller,
+                $controller_class, $this->getControllerPath($controller));
+        }
+        $controller = new $controller_class($controller, $this,
             $request, $response);
         
         $action = $controller['action'];
@@ -79,6 +85,10 @@ class SmoothApplication {
         }
     }
     
+    protected function getControllerPath($name) {
+        return path_join($this->root, 'controllers', "$name.php");
+    }
+    
     private function loadController($name) {
         $class = $this->config->get("smooth/controllers/$name");
         if (!$class) {
@@ -87,9 +97,9 @@ class SmoothApplication {
         }
         
         if (!class_exists($class)) {
-            $path = path_join($this->root, 'controllers', "$name.php");
+            $path = $this->getControllerPath($name);
             if (!file_exists($path)) {
-                throw new SmoothControllerMissingException($name, $class,
+                throw new SmoothControllerFileMissingException($name, $class,
                     $path);
             }
             require_once $path;
