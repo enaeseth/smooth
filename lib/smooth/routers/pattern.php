@@ -71,11 +71,13 @@ class SmoothPatternRouter extends SmoothRouter {
 }
 
 class SmoothPatternEntry {
+    private $name;
     private $pattern;
     private $groups;
     private $config;
     
-    public function __construct($pattern, $groups, $config) {
+    public function __construct($name, $pattern, $groups, $config) {
+        $this->name = $name;
         $this->pattern = $pattern;
         $this->groups = $groups;
         $this->config = $config;
