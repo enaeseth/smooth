@@ -80,22 +80,22 @@ class SmoothApplication {
     }
     
     private function loadController($name) {
-        $class_name = $this->config->get("smooth/controllers/$name");
-        if (!$class_name) {
-            $class_name = implode('', array_map('ucfirst',
+        $class = $this->config->get("smooth/controllers/$name");
+        if (!$class) {
+            $class = implode('', array_map('ucfirst',
                 explode('_', $name))).'Controller';
         }
         
-        if (!class_exists($class_name)) {
+        if (!class_exists($class)) {
             $path = path_join($this->root, 'controllers', "$name.php");
             if (!file_exists($path)) {
-                throw new SmoothControllerMissingException($name, $class_name,
+                throw new SmoothControllerMissingException($name, $class,
                     $path);
             }
             require_once $path;
         }
         
-        return $class_name;
+        return $class;
     }
     
     private function getErrorHandler($error) {
