@@ -1,6 +1,6 @@
 <?php
 
-// SMOOTH: The PHP framework that goes down easy.
+// Smooth: The PHP framework that goes down easy.
 // Copyright © 2008 Carleton College.
 
 // This file just contains some housekeeping; for the real meat see
