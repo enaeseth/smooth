@@ -82,8 +82,8 @@ class SmoothApplication {
     private function loadController($name) {
         $class = $this->config->get("smooth/controllers/$name");
         if (!$class) {
-            $class = implode('', array_map('ucfirst',
-                explode('_', $name))).'Controller';
+            $class = implode('', array_map('ucfirst', explode('_', $name))).
+                'Controller';
         }
         
         if (!class_exists($class)) {
