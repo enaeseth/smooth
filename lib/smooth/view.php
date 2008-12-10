@@ -18,8 +18,8 @@ class SmoothView {
         if (is_array($context)) {
             extract($context, EXTR_OVERWRITE | EXTR_REFS);
         } else if (is_object($context)) {
-            foreach (array_keys((array) $context) as $k) {
-                $$k = &$context->$k;
+            foreach ($context as $k => $v) {
+                $$k = $v;
             }
         } else {
             throw new InvalidArgumentException('Rendering context must be '.
