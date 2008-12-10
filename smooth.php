@@ -36,4 +36,5 @@ function smooth_load() {
 }
 
 // Let's get this started!
+require smooth_path('support', 'yaml.php');
 require smooth_path('lib', 'smooth.php');
