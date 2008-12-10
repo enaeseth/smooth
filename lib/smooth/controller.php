@@ -39,7 +39,11 @@ class SmoothController {
         
         $view = new SmoothView($path);
         if (!$context)
-            $context = $this;
+            $context = array();
+        if (is_array($context)) {
+            $context['controller'] = $this;
+            $context['application'] = $this->application;
+        }
         $view->render($context);
         $this->rendered = true;
     }
