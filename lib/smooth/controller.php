@@ -6,10 +6,10 @@
 smooth_load('view', 'application', 'request', 'response');
 
 class SmoothController {
-    private $application;
-    private $name;
-    private $request;
-    private $response;
+    public $application;
+    public $name;
+    protected $request;
+    protected $response;
     private $rendered;
     
     public function __construct($name, SmoothApplication $app,
