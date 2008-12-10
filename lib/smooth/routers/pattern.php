@@ -13,9 +13,9 @@ class SmoothPatternRouter extends SmoothRouter {
     }
     
     public function route(SmoothRequest $request) {
-        $length = count($table);
+        $length = count($this->table);
         for ($i = 0; $i < $length; $i++) {
-            $match = $table[$i]->match($request->path_info);
+            $match = $this->table[$i]->match($request->path_info);
             if (!$match)
                 continue;
             
@@ -45,7 +45,7 @@ class SmoothPatternRouter extends SmoothRouter {
             preg_match_all('#(\(.+?\))?:(\w+)#', $path, $matches,
                 PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
                 
-            $pattern = '#';
+            $pattern = '#^';
             $last = 0;
             $groups = array();
             foreach ($matches as $m) {
@@ -59,7 +59,12 @@ class SmoothPatternRouter extends SmoothRouter {
                 $pattern .= '(.+?)';
                 $last = $m[0][1] + strlen($m[0][0]);
             }
-            $pattern .= preg_quote(substr($path, $last), '#').'#';
+            
+            $pattern .= preg_quote(substr($path, $last), '#');
+            if (substr($pattern, -1) != '/')
+                $pattern .= '/?';
+            $pattern .= '$#';
+            
             $this->table[] = new SmoothPatternEntry($pattern, $groups, $spec);
         }
     }
@@ -78,7 +83,7 @@ class SmoothPatternEntry {
     
     public function match($path) {
         $matches = array();
-        if (!$len = preg_match($this->pattern, $path, $matches, PREG_SET_ORDER))
+        if (!$len = preg_match($this->pattern, $path, $matches))
             return null;
         
         $params = array();
