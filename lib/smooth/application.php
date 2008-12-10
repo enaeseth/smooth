@@ -56,6 +56,10 @@ class SmoothApplication {
         }
         $controller = new $controller_class($controller, $this,
             $request, $response);
+        if (!($controller instanceof SmoothController)) {
+            throw new SmoothSetupException("Controller '$route[controller]' ".
+                "($controller_class) does not inherit from SmoothController.");
+        }
         
         $action = $route['action'];
         try {
