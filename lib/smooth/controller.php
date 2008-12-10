@@ -3,7 +3,7 @@
 // SMOOTH: The PHP framework that goes down easy.
 // Copyright © 2008 Carleton College.
 
-smooth_load('view');
+smooth_load('view', 'application', 'request', 'response');
 
 class SmoothController {
     private $application;

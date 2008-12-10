@@ -3,7 +3,8 @@
 // SMOOTH: The PHP framework that goes down easy.
 // Copyright © 2008 Carleton College.
 
-smooth_load('configuration', 'errors', 'routing', 'controller');
+smooth_load('configuration', 'errors', 'routing', 'controller', 'request',
+    'response');
 
 class SmoothApplication {
     public $root;
