@@ -229,13 +229,14 @@ class SmoothPatternEntry {
     
     public function match($path) {
         $matches = array();
-        if (!$len = preg_match($this->pattern, $path, $matches))
+        if (!preg_match($this->pattern, $path, $matches))
             return null;
         
         $params = array();
-        for ($i = 0; $i < $len; $i++) {
+        $len = count($matches);
+        for ($i = 1; $i < $len; $i++) {
             $match = $matches[$i];
-            $group = $this->groups[$i];
+            $group = $this->groups[$i - 1];
             if ($group['pattern'] && !preg_match($group['pattern'], $match))
                 return null;
             
