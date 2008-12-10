@@ -14,7 +14,7 @@ function path_join() {
 define('SMOOTH_ROOT', dirname(__FILE__));
 function smooth_path() {
     $parts = func_get_args();
-    return path_join(SMOOTH_ROOT, path_join($parts));
+    return path_join(SMOOTH_ROOT, call_user_func_array('path_join', $parts));
 }
 
 function _smooth_get_lib_path($library) {
