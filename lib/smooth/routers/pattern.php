@@ -46,7 +46,7 @@ class SmoothPatternRouter extends SmoothRouter {
                     '#');
                 $group = array('name' => $m[2][0]);
                 if ($m[1][0]) {
-                    $group['pattern'] = '/'.$m[1][0].'/';
+                    $group['pattern'] = '/^'.$m[1][0].'$/';
                 }
                 $groups[] = $group;
                 $pattern .= '(.+?)';
