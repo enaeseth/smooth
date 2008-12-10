@@ -3,6 +3,8 @@
 // SMOOTH: The PHP framework that goes down easy.
 // Copyright © 2008 Carleton College.
 
+smooth_load('request');
+
 abstract class SmoothRouter {
     protected $application;
     
@@ -11,6 +13,7 @@ abstract class SmoothRouter {
     }
     
     public abstract function route(SmoothRequest $request);
+    // public abstract function getPath($controller, $action);
     
     protected function getRouteFile($extensions=null) {
         if (!$extensions) {
