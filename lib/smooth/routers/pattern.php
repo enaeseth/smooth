@@ -113,8 +113,8 @@ class SmoothPatternFileReader implements Iterator {
         
         while ($line = fgets($this->handle)) {
             ++$this->line;
-            // Skip comments:
-            if (!preg_match('/^\s*#/', $line))
+            // Skip comments and empty lines:
+            if (!preg_match('/^\s*(#|$)/', $line))
                 break;
         }
         return $line;
