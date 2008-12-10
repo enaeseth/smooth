@@ -23,7 +23,7 @@ class SmoothApplication {
             $this->config->merge($runtime_config);
             
         $router = $this->config->get('smooth/router', 'default');
-        $this->router = SmoothRouter::get($router);
+        $this->router = SmoothRouter::get($router, $this);
     }
     
     public function run() {
