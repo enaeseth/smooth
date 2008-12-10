@@ -10,6 +10,7 @@ class SmoothApplication {
     public $root;
     public $config;
     public $router;
+    public $environment;
     
     public function __construct($root=null, $runtime_config=null) {
         $this->config = new SmoothConfiguration();
@@ -20,10 +21,14 @@ class SmoothApplication {
         }
         $this->root = $root;
         
-        $this->loadConfiguration();
+        $env = ($runtime_config && $runtime_config['environment'])
+            ? $runtime_config['environment']
+            : 'development';
+        $this->loadConfiguration($env);
         if ($runtime_config)
             $this->config->merge($runtime_config);
             
+        $this->environment = $env;
         $router = $this->config->get('smooth/router', 'default');
         $this->router = SmoothRouter::get($router, $this);
     }
@@ -139,23 +144,28 @@ class SmoothApplication {
 <?
     }
     
-    private function loadConfiguration() {
-        $file = '{app,application}.{yml,yaml,conf}';
-        $pattern = path_join($this->root, '{config,configuration}', $file);
+    private function loadConfiguration($environment) {
+        $exts = '{yml,yaml,conf}';
         
-        $files = glob($pattern, GLOB_BRACE);
-        if (!$files) {
-            $files = glob(path_join($this->root, $file), GLOB_BRACE);
+        foreach (array('{app,application}', $environment) as $source) {
+            $file = "$source.$exts";
+            $pattern = path_join($this->root, '{config,configuration}', $file);
+
+            $files = glob($pattern, GLOB_BRACE);
+            if (!$files) {
+                $files = glob(path_join($this->root, $file), GLOB_BRACE);
+            }
+
+            if (!$files)
+                return;
+
+            if (!is_readable($files[0])) {
+                throw new SmoothSetupException('Configuration file "'.
+                    $files[0].'" is not readable.');
+            }
+            $this->config->merge(yaml_load($files[0]));
         }
         
-        if (!$files)
-            return;
-        
-        if (!is_readable($files[0])) {
-            throw new SmoothSetupException('Configuration file "'.
-                $files[0].'" is not readable.');
-        }
-        $this->config->merge(yaml_load($files[0]));
     }
 }
 
