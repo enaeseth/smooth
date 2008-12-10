@@ -15,8 +15,9 @@ class SmoothApplication {
         
         if (!$root) {
             // Automatically determine the application root.
-            $root = $this->determineRoot(debug_backtrace());
+            $root = dirname($_SERVER['SCRIPT_FILENAME']);
         }
+        $this->root = $root;
         
         $this->loadConfiguration();
         if ($runtime_config)
@@ -138,11 +139,6 @@ class SmoothApplication {
                 $files[0].'" is not readable.');
         }
         $this->config->merge(yaml_load($files[0]));
-    }
-    
-    private function determineRoot(array $backtrace) {
-        $frame = &$backtrace[1];
-        return dirname($frame['file']);
     }
 }
 
