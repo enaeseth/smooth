@@ -13,7 +13,7 @@ class SmoothConfiguration
     public function get($field, $default=null) {
         $parts = explode('/', $field, 2);
         if (count($parts) == 1) {
-            return (isset($this->$field) ? $this->$field : null);
+            return (isset($this->$field) ? $this->$field : $default);
         }
         
         $field = $parts[0];
@@ -21,7 +21,7 @@ class SmoothConfiguration
         if (!isset($this->$field) || !is_object($this->$field))
             return $default;
         
-        return $this->$field->get($defer);
+        return $this->$field->get($defer, $default);
     }
     
     public function merge($data) {
@@ -31,16 +31,19 @@ class SmoothConfiguration
         }
         
         foreach ((array) $data as $k => $v) {
-            if (is_array($v) && $this->isAssociative($v)) {
+            if ($this->convertable($v)) {
                 if (!$this->$k)
                     $this->$k = new SmoothConfiguration();
                 $this->$k->merge($v);
-            } else if (is_object($v) && !($v instanceof SmoothConfiguration)) {
-                $this->$k = new SmoothConfiguration($v);
             } else {
                 $this->$k = $v;
             }
         }
+    }
+    
+    private function convertable($v) {
+        return (is_array($v) && $this->isAssociative($v)) ||
+            (is_object($v) && !($v instanceof SmoothConfiguration));
     }
     
     private function isAssociative(array $data) {
