@@ -57,16 +57,19 @@ class SmoothApplication {
         $controller = new $controller_class($controller, $this,
             $request, $response);
         if (!($controller instanceof SmoothController)) {
-            throw new SmoothSetupException("Controller '$route[controller]' ".
-                "($controller_class) does not inherit from SmoothController.");
+            throw new SmoothInvalidControllerException('Class does not '.
+                'inherit from SmoothController.', $route['controller'],
+                $controller_class, $this->getControllerPath($controller));
         }
         
         $action = $route['action'];
         try {
             $method = $reflector->getMethod($action);
         } catch (ReflectionException $e) {
-            throw new SmoothSetupException("Controller '$route[controller]' ".
-                "($controller_class) does not implement action '$action'.");
+            throw new SmoothExecutionException(
+                "Controller '$route[controller]' ($controller_class) does not ".
+                "implement action '$action'."
+            );
         }
         
         $args = array();

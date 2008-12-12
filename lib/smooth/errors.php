@@ -44,3 +44,16 @@ class SmoothControllerClassMissingException extends SmoothControllerException {
             "$class was not defined by file '$path'.";
     }
 }
+
+class SmoothInvalidControllerException extends SmoothControllerException {
+    private $reason;
+    
+    public function __construct($reason, $controller, $class, $path) {
+        $this->reason = $reason;
+        parent::__construct($controller, $class, $path);
+    }
+    
+    protected function createMessage($controller, $class, $path) {
+        return "Invalid controller '$controller' ($class): {$this->reason}."
+    }
+}
