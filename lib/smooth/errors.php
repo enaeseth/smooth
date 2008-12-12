@@ -15,6 +15,19 @@ class SmoothExecutionException extends SmoothException {
     
 }
 
+class SmoothHTTPError extends SmoothExecutionException {
+    private $description;
+    
+    public function __construct($message, $code) {
+        parent::__construct($message, $code);
+        $this->description = SmoothResponse::getStatusDescription($code);
+    }
+    
+    public function getDescription() {
+        return $this->description;
+    }
+}
+
 abstract class SmoothControllerException extends SmoothExecutionException {
     public $controller;
     public $class;
@@ -54,6 +67,6 @@ class SmoothInvalidControllerException extends SmoothControllerException {
     }
     
     protected function createMessage($controller, $class, $path) {
-        return "Invalid controller '$controller' ($class): {$this->reason}."
+        return "Invalid controller '$controller' ($class): {$this->reason}.";
     }
 }

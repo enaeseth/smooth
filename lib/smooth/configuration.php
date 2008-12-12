@@ -32,7 +32,7 @@ class SmoothConfiguration
         
         foreach ((array) $data as $k => $v) {
             if ($this->convertable($v)) {
-                if (!$this->$k)
+                if (!isset($this->$k))
                     $this->$k = new SmoothConfiguration();
                 $this->$k->merge($v);
             } else {

@@ -37,13 +37,20 @@ class SmoothApplication {
         $request = new SmoothRequest();
         $response = new SmoothResponse($request);
         
+        try {
+            $this->invoke($request, $response);
+        } catch (SmoothHTTPError $error) {
+            $this->handleError($request, $error);
+        } catch (Exception $exception) {
+            $this->handleException($request, $exception);
+        }
+    }
+    
+    private function invoke(SmoothRequest $request, SmoothResponse $response) {
         $route = $this->router->route($request);
         if (!$route) {
-            $route = $this->getErrorHandler(404);
-            if (!$route) {
-                $this->respondToError(404);
-                return false;
-            }
+            throw new SmoothHTTPError('The requested URL "'.
+                $request->request_uri.'" was not found on this server.', 404);
         }
         
         $controller = $route['controller'];
@@ -100,6 +107,24 @@ class SmoothApplication {
         }
     }
     
+    private function handleError($request, $error) {
+        $code = $error->getCode();
+        $page_title = $subtitle = "HTTP Error $code";
+        $title = $error->getMessage();
+        
+        header('Content-Type: text/html; charset=utf-8');
+        include smooth_path('templates', 'error.php');
+    }
+    
+    private function handleException($request, $exception) {
+        $page_title = $title = get_class($exception).' at '.
+            $request->request_uri;
+        $subtitle = $exception->getMessage();
+        
+        header('Content-Type: text/html; charset=utf-8');
+        include smooth_path('templates', 'error.php');
+    }
+    
     protected function getControllerPath($name) {
         return path_join($this->root, 'controllers', "$name.php");
     }
@@ -134,23 +159,6 @@ class SmoothApplication {
             return array('controller' => $controller, 'action' => $action);
         }
         return $handler;
-    }
-    
-    private function respondToError($code) {
-        $desc = SmoothResponse::getStatusDescription($code);
-?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html lang="en" xml:lang="en">
-<head>
-    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
-    <title>Error: <?= $desc ?></title>
-</head>
-<body>
-    <h1><?= $desc ?></h1>
-</body>
-</html>
-<?
     }
     
     private function loadConfiguration($environment) {
