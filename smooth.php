@@ -6,6 +6,11 @@
 // This file just contains some housekeeping; for the real meat see
 // lib/smooth.php.
 
+function _raise_from_error($severity, $message, $file, $line) {
+    throw new ErrorException($message, 0, $severity, $file, $line);
+}
+set_error_handler("_raise_from_error");
+
 function path_join() {
     $parts = func_get_args();
     return implode(DIRECTORY_SEPARATOR, $parts);
