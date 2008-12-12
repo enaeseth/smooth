@@ -77,8 +77,10 @@ class SmoothApplication {
             $name = $param->getName();
             if (!$route[$name]) {
                 if (!$param->isOptional()) {
-                    throw new SmoothException("$controller_class::$action ".
-                        "requires parameter '$name'.");
+                    throw new SmoothExecutionException(
+                        "$controller_class::$action requires ".
+                        "parameter '$name'."
+                    );
                 }
                 $args[] = ($param->isDefaultValueAvailable())
                     ? $param->getDefaultValue()
