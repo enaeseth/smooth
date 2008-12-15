@@ -48,10 +48,26 @@ class SmoothRequest {
 
         $this->request_uri = $_SERVER['REQUEST_URI'];
         $this->script_name = $_SERVER['SCRIPT_NAME'];
+        $this->script_file = $_SERVER['PHP_SELF'];
         $this->path_info = $_SERVER['PATH_INFO'];
         
+        // It's possible to use Apache's mod_rewrite or something similar to
+        // give the local path to Smooth via a _path_info GET variable. If that
+        // is happening, clean up our request environment to make it more
+        // CGI-like.
         if (isset($_GET['_path_info'])) {
             $this->path_info = $_GET['_path_info'];
+            
+            $len = strlen($this->path_info);
+            if (substr($this->request_uri, -$len) == $this->path_info) {
+                $this->script_name = substr($this->request_uri, 0, -$len);
+                if ($this->path_info[0] != '/') {
+                    if (substr($this->script_name, -1) == '/') {
+                        $this->script_name = substr($this->script_name, 0, -1);
+                        $this->path_info = '/'.$this->path_info;
+                    }
+                }
+            }
         }
     }
 }
