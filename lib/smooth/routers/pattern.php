@@ -224,7 +224,7 @@ class SmoothPatternEntry {
         $this->name = $name;
         $this->pattern = $pattern;
         $this->groups = $groups;
-        $this->config = $config;
+        $this->config = ($config) ? $config : array();
     }
     
     public function match($path) {
