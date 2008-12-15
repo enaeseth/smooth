@@ -42,6 +42,7 @@ class SmoothRequest {
         $this->accept = $_SERVER['HTTP_ACCEPT'];
         $this->host = $_SERVER['HTTP_HOST'];
         $this->referer = @$_SERVER['HTTP_REFERER'];
+        $this->referrer =& $this->referer;
         $this->user_agent = $_SERVER['HTTP_USER_AGENT'];
         $this->remote_address = $_SERVER['REMOTE_ADDR'];
 
