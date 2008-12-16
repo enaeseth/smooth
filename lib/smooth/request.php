@@ -69,4 +69,60 @@ class SmoothRequest {
             }
         }
     }
+    
+    public function getAcceptableTypes() {
+        if ($this->acceptable_types)
+            return $this->acceptable_types;
+        
+        static $type_pattern =
+            '/((?:[\w-]+|\*)\/(?:[\w-\+]+|\*))(?:;\s*q\s*=\s*(\d(?:\.\d+)?))?/';
+        
+        $matches = array();
+        $count = preg_match_all($type_pattern, $this->accept, $matches,
+            PREG_SET_ORDER);
+        
+        $types = array();
+        foreach ($matches as $match) {
+            $quality = ($match[2]) ? ((float) $match[2]) : 1.0;
+            $types[] = array($match[1], $quality);
+        }
+        usort($types, array('SmoothRequest', 'compareTypes'));
+        
+        $this->acceptable_types = array();
+        foreach ($types as $type) {
+            $this->acceptable_types[] = $type[0];
+        }
+        
+        return $this->acceptable_types;
+    }
+    
+    public function getPreferredType() {
+        $providable = func_get_args();
+        $acceptable = $this->getAcceptableTypes();
+        
+        foreach ($acceptable as $at) {
+            foreach ($providable as $pt) {
+                if ($this->typesMatch($pt, $at))
+                    return $pt;
+            }
+        }
+        
+        return null;
+    }
+    
+    private function compareTypes($a, $b) {
+        if ($a[1] == $b[1]) 
+            $res = 0;
+        else
+            $res = ($a[1] < $b[1]) ? 1 : -1;
+        return $res;
+    }
+    
+    private function typesMatch($p, $a) {
+        $p = explode('/', $p);
+        $a = explode('/', $a);
+        
+        return ($a[0] == '*' || $p[0] == $a[0]) &&
+            ($a[1] == '*' || $p[1] == $a[1]);
+    }
 }
