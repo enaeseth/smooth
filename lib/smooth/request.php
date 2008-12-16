@@ -58,14 +58,13 @@ class SmoothRequest {
         if (isset($_GET['_path_info'])) {
             $this->path_info = $_GET['_path_info'];
             
-            $len = strlen($this->path_info);
-            if (substr($this->request_uri, -$len) == $this->path_info) {
+            $path = $this->path_info;
+            $len = strlen($path);
+            if ($len == 0 || substr($this->request_uri, -$len) == $path) {
                 $this->script_name = substr($this->request_uri, 0, -$len);
-                if ($this->path_info[0] != '/') {
-                    if (substr($this->script_name, -1) == '/') {
-                        $this->script_name = substr($this->script_name, 0, -1);
-                        $this->path_info = '/'.$this->path_info;
-                    }
+                if ($path[0] != '/' && substr($this->script_name, -1) == '/') {
+                    $this->script_name = substr($this->script_name, 0, -1);
+                    $this->path_info = '/'.$this->path_info;
                 }
             }
         }
