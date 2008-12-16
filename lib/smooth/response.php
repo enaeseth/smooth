@@ -10,6 +10,10 @@ class SmoothResponse {
         $this->request = $request;
     }
     
+    public function header($header, $value, $replace=false) {
+        $this->setHeader($header, $value, $replace);
+    }
+    
     public function setHeader($header, $value, $replace=false) {
         header("$header: $value", $replace);
     }
