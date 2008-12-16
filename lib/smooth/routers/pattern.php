@@ -15,7 +15,8 @@ class SmoothPatternRouter extends SmoothRouter {
     public function route(SmoothRequest $request) {
         $length = count($this->table);
         for ($i = 0; $i < $length; $i++) {
-            $match = $this->table[$i]->match($request->path_info);
+            $match = $this->table[$i]->match($request->method,
+                $request->path_info);
             if (!$match)
                 continue;
             
@@ -59,12 +60,14 @@ class SmoothPatternRouter extends SmoothRouter {
             $pattern .= '$#';
             
             $this->table[] = new SmoothPatternEntry($entry['name'],
-                $pattern, $groups, $entry['spec']);
+                $entry['methods'], $pattern, $groups, $entry['spec']);
         }
     }
 }
 
 class SmoothPatternFileReader implements Iterator {
+    const HTTP_METHODS = '(?:GET|HEAD|POST|PUT|DELETE)';
+    
     public $filename;
     
     // State:
@@ -170,6 +173,15 @@ class SmoothPatternFileReader implements Iterator {
         }
         
         $line = preg_replace('/^(-|\w+:)\s*/', '', $line);
+        $methods = self::HTTP_METHODS;
+        $method_pattern = "/^($methods(?:\\s*,\\s*$methods)*)\s*/";
+        if (preg_match($method_pattern, $line, $matches)) {
+            $result['methods'] = preg_split('/\s*,\s*/', $matches[1]);
+            $line = substr($line, strlen($matches[0]));
+        } else {
+            $result['methods'] = null;
+        }
+        
         $parts = preg_split('/\s*=>\s*/', $line, 2);
         
         if (count($parts) == 1) {
@@ -216,18 +228,23 @@ class SmoothPatternFileReader implements Iterator {
 
 class SmoothPatternEntry {
     private $name;
+    private $methods;
     private $pattern;
     private $groups;
     private $config;
     
-    public function __construct($name, $pattern, $groups, $config) {
+    public function __construct($name, $methods, $pattern, $groups, $config) {
         $this->name = $name;
+        $this->methods = $methods;
         $this->pattern = $pattern;
         $this->groups = $groups;
         $this->config = ($config) ? $config : array();
     }
     
-    public function match($path) {
+    public function match($method, $path) {
+        if ($this->methods && !in_array($method, $this->methods))
+            return null;
+        
         $matches = array();
         if (!preg_match($this->pattern, $path, $matches))
             return null;
