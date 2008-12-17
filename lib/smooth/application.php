@@ -46,6 +46,17 @@ class SmoothApplication {
         }
     }
     
+    public function completeURL(SmoothRequest $req, $path) {
+        $protocol = ($req->secure) ? 'https' : 'http';
+        $host = $req->host;
+        $port = $req->server_port;
+        $port = ($req->secure && $port == 443 || !$req->secure && $port == 80)
+            ? ''
+            : ":$port";
+        
+        return "$protocol://{$host}{$port}{$req->script_name}{$path}";
+    }
+    
     private function invoke(SmoothRequest $request, SmoothResponse $response) {
         $route = $this->router->route($request);
         if (!$route) {

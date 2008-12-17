@@ -13,7 +13,7 @@ abstract class SmoothRouter {
     }
     
     public abstract function route(SmoothRequest $request);
-    // public abstract function getPath($controller, $action);
+    public abstract function getPath($route_name, $vars=null);
     
     protected function getRouteFile($extensions=null) {
         if (!$extensions) {

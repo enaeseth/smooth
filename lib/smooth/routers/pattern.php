@@ -5,6 +5,7 @@
 
 class SmoothPatternRouter extends SmoothRouter {
     private $table = array();
+    private $named_routes = array();
     
     public function __construct(SmoothApplication $application) {
         parent::__construct($application);
@@ -26,6 +27,21 @@ class SmoothPatternRouter extends SmoothRouter {
         return false;
     }
     
+    public function getPath($route_name, $vars=null) {
+        $route = @$this->named_routes[$route_name];
+        if (!$route) {
+            throw new SmoothExecutionException('There is no route named "'.
+                $route_name.'".');
+        }
+        
+        if (!is_array($vars)) {
+            $vars = func_get_args();
+            array_shift($vars);
+        }
+        
+        return $route->interpolate($vars);
+    }
+    
     private function loadRoutes() {
         $file = $this->getRouteFile(array('conf', 'txt'));
         if (!$file) {
@@ -40,27 +56,35 @@ class SmoothPatternRouter extends SmoothRouter {
                 PREG_SET_ORDER | PREG_OFFSET_CAPTURE);
                 
             $pattern = '#^';
+            $raw = '';
             $last = 0;
             $groups = array();
             foreach ($matches as $m) {
-                $pattern .= preg_quote(substr($path, $last, $m[0][1] - $last),
-                    '#');
+                $bare_part = substr($path, $last, $m[0][1] - $last);
+                $pattern .= preg_quote($bare_part, '#');
+                $raw .= $bare_part;
                 $group = array('name' => $m[2][0]);
                 if ($m[1][0]) {
                     $group['pattern'] = '/^'.$m[1][0].'$/';
                 }
                 $groups[] = $group;
                 $pattern .= '(.+?)';
+                $raw .= ":{$group[name]}";
                 $last = $m[0][1] + strlen($m[0][0]);
             }
             
-            $pattern .= preg_quote(substr($path, $last), '#');
+            $bare_part = substr($path, $last);
+            $pattern .= preg_quote($bare_part, '#');
+            $raw .= $bare_part;
             if (substr($pattern, -1) != '/')
                 $pattern .= '/?';
             $pattern .= '$#';
             
-            $this->table[] = new SmoothPatternEntry($entry['name'],
-                $entry['methods'], $pattern, $groups, $entry['spec']);
+            $table_entry = new SmoothPatternEntry($entry['name'],
+                $entry['methods'], $pattern, $raw, $groups, $entry['spec']);
+            $this->table[] = $table_entry;
+            if (!empty($entry['name']))
+                $this->named_routes[$entry['name']] = $table_entry;
         }
     }
 }
@@ -230,13 +254,17 @@ class SmoothPatternEntry {
     private $name;
     private $methods;
     private $pattern;
+    private $raw;
     private $groups;
     private $config;
     
-    public function __construct($name, $methods, $pattern, $groups, $config) {
+    public function __construct($name, $methods, $pattern, $raw, $groups,
+        $config)
+    {
         $this->name = $name;
         $this->methods = $methods;
         $this->pattern = $pattern;
+        $this->raw = $raw;
         $this->groups = $groups;
         $this->config = ($config) ? $config : array();
     }
@@ -261,5 +289,17 @@ class SmoothPatternEntry {
         }
         
         return array_merge($this->config, $params);
+    }
+    
+    public function interpolate($arguments) {
+        $url = $this->raw;
+        
+        foreach ($arguments as $key => $value) {
+            if (is_numeric($key))
+                $key = $this->groups[$key]['name'];
+            $url = str_replace(":$key", $value, $url);
+        }
+        
+        return $url;
     }
 }

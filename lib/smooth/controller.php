@@ -47,4 +47,28 @@ class SmoothController {
         $view->render($context);
         $this->rendered = true;
     }
+    
+    public function url($route_name, $vars=null) {
+        if (!is_array($vars)) {
+            $vars = func_get_args();
+            array_shift($vars);
+        }
+        
+        $path = $this->application->router->getPath($route_name, $vars);
+        return $this->application->completeURL($this->request, $path);
+    }
+    
+    public function redirect($url, $vars=null) {
+        if (substr($url, 0, 6) == 'route:') {
+            if (!is_array($vars)) {
+                $vars = func_get_args();
+                array_shift($vars);
+            }
+            
+            $url = $this->url($url, $vars);
+        }
+        
+        $this->response->header('Location', $url);
+        throw new SmoothHTTPError(302);
+    }
 }
