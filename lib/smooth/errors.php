@@ -18,7 +18,15 @@ class SmoothExecutionException extends SmoothException {
 class SmoothHTTPError extends SmoothExecutionException {
     private $description;
     
-    public function __construct($message, $code) {
+    public function __construct($message, $code=null) {
+        if (func_num_args() == 1) {
+            if (is_numeric($message)) {
+                $code = $message;
+                $message = null;
+            } else {
+                $code = 500;
+            }
+        }
         parent::__construct($message, $code);
         $this->description = SmoothResponse::getStatusDescription($code);
     }
