@@ -109,6 +109,11 @@ class SmoothApplication {
     
     private function handleError($request, $error) {
         $code = $error->getCode();
+        if ($code >= 301 && $code < 400) {
+            // Redirection.
+            return;
+        }
+        
         $page_title = $subtitle = "HTTP Error $code";
         $title = $error->getMessage();
         
