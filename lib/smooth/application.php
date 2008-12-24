@@ -128,7 +128,7 @@ class SmoothApplication {
         $page_title = $subtitle = "HTTP Error $code";
         $title = $error->getMessage();
         
-        header('Content-Type: text/html; charset=utf-8');
+        @header('Content-Type: text/html; charset=utf-8');
         include smooth_path('templates', 'error.php');
     }
     
@@ -137,7 +137,7 @@ class SmoothApplication {
             $request->request_uri;
         $subtitle = $exception->getMessage();
         
-        header('Content-Type: text/html; charset=utf-8');
+        @header('Content-Type: text/html; charset=utf-8');
         include smooth_path('templates', 'error.php');
     }
     
