@@ -138,6 +138,96 @@ class SmoothApplication {
         }
     }
     
+    private function callMiddleware(SmoothRequest $request,
+        SmoothResponse $response)
+    {
+        $settings = $this->config->get('smooth/middleware');
+        if (!$settings)
+            return;
+        
+        foreach ($settings as $name => $config) {
+            if (!$config)
+                continue;
+            
+            $class = null;
+            if (is_object($config) && isset($config->class)) {
+                $class = $config->class;
+                unset($config->class);
+            } else {
+                $class = ucfirst($name).'Middleware';
+            }
+            
+            if (!class_exists($class)) {
+                $this->loadMiddlewareFile($name, $class);
+            }
+            
+            $rc = new ReflectionClass($class);
+            
+            if (is_object($config)) {
+                try {
+                    $const = $rc->getConstructor();
+                    $args = $this->mapNamedArguments($config, $const);
+                    $mw = $rc->newInstanceArgs($args);
+                } catch (ReflectionException $e) {
+                    // construct with no arguments
+                    $mw = $rc->newInstance();
+                }
+            } else {
+                $mw = $rc->newInstance();
+            }
+            
+            $mw->call($this, $request, $response);
+        }
+    }
+    
+    private function loadMiddlewareFile($name, $class) {
+        $path = null;
+        $builtin_path = smooth_path('lib', 'smooth', 'middleware',
+            "$name.php");
+        $app_path = path_join($this->root, 'middleware', "$name.php");
+        if (file_exists($app_path)) {
+            $path = $app_path;
+        } else if (file_exists($builtin_path)) {
+            $path = $builtin_path;
+        } else {
+            throw new SmoothMiddlewareException('Cannot find the file for '.
+                "the '$name' middleware.", $name, $class);
+        }
+        
+        require_once $path;
+        
+        if (!class_exists($class)) {
+            throw new SmoothMiddlewareException('The file "'.$path.'" did '.
+                'not define the middleware class "'.$class.'".', $name, $class);
+        }
+    }
+    
+    private function mapNamedArguments($args, ReflectionMethod $method) {
+        $params = $method->getParameters();
+        
+        $out = array();
+        foreach ($params as $param) {
+            $name = $param->getName();
+            
+            if (!$args[$name]) {
+                if (!$param->isOptional()) {
+                    $class = $method->getDeclaringClass()->getName();
+                    $m_name = $method->getName();
+                    throw new SmoothMiddlewareException(
+                        "$class::$m_name requires parameter '$name'."
+                    );
+                }
+                $out[] = ($param->isDefaultValueAvailable())
+                    ? $param->getDefaultValue()
+                    : null;
+            } else {
+                $out[] = $args[$name];
+            }
+        }
+        
+        return $out;
+    }
+    
     private function handleError($request, $error) {
         $code = $error->getCode();
         if ($code >= 301 && $code < 400) {
