@@ -211,7 +211,7 @@ class SmoothApplication {
         foreach ($params as $param) {
             $name = $param->getName();
             
-            if (!$args[$name]) {
+            if (!$args->$name) {
                 if (!$param->isOptional()) {
                     $class = $method->getDeclaringClass()->getName();
                     $m_name = $method->getName();
@@ -223,7 +223,7 @@ class SmoothApplication {
                     ? $param->getDefaultValue()
                     : null;
             } else {
-                $out[] = $args[$name];
+                $out[] = $args->$name;
             }
         }
         
