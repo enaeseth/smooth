@@ -100,6 +100,8 @@ class SmoothApplication {
                 $controller_class, $this->getControllerPath($controller));
         }
         
+        $this->callMiddleware($request, $response);
+        
         $action = $route['action'];
         try {
             $method = $reflector->getMethod($action);
