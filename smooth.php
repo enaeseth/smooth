@@ -7,7 +7,8 @@
 // lib/smooth.php.
 
 function _raise_from_error($severity, $message, $file, $line) {
-    throw new ErrorException($message, 0, $severity, $file, $line);
+    if (error_reporting() & $severity)
+        throw new ErrorException($message, 0, $severity, $file, $line);
 }
 set_error_handler("_raise_from_error", E_ERROR | E_WARNING | E_CORE_ERROR |
     E_USER_ERROR | E_USER_WARNING | E_RECOVERABLE_ERROR);
