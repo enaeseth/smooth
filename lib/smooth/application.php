@@ -46,8 +46,10 @@ class SmoothApplication {
                 $this->invoke($request, $response);
             }
         } catch (SmoothHTTPError $error) {
+            ob_end_clean();
             $this->handleError($request, $error);
         } catch (Exception $exception) {
+            ob_end_clean();
             $this->handleException($request, $exception);
         }
     }
