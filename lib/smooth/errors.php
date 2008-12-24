@@ -78,3 +78,14 @@ class SmoothInvalidControllerException extends SmoothControllerException {
         return "Invalid controller '$controller' ($class): {$this->reason}.";
     }
 }
+
+class SmoothMiddlewareException extends SmoothExecutionException {
+    public $name;
+    public $class;
+    
+    function __construct($message, $name, $class) {
+        parent::__construct($message);
+        $this->name = $name;
+        $this->class = $class;
+    }
+}
