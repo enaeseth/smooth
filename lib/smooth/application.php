@@ -4,7 +4,7 @@
 // Copyright © 2008 Carleton College.
 
 smooth_load('configuration', 'errors', 'routing', 'controller', 'request',
-    'response');
+    'response', 'middleware');
 
 class SmoothApplication {
     public $root;
