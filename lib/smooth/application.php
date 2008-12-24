@@ -38,12 +38,30 @@ class SmoothApplication {
         $response = new SmoothResponse($request);
         
         try {
-            $this->invoke($request, $response);
+            if ($this->isDevelopmentEnvironment()) {
+                ob_start();
+                $this->invoke($request, $response);
+                ob_end_flush();
+            } else {
+                $this->invoke($request, $response);
+            }
         } catch (SmoothHTTPError $error) {
             $this->handleError($request, $error);
         } catch (Exception $exception) {
             $this->handleException($request, $exception);
         }
+    }
+    
+    public function isDevelopmentEnvironment() {
+        return $this->environment == 'development';
+    }
+    
+    public function isTestingEnvironment() {
+        return $this->environment == 'testing';
+    }
+    
+    public function isProductionEnvironment() {
+        return $this->environment == 'development';
     }
     
     public function completeURL(SmoothRequest $req, $path) {
