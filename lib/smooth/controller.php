@@ -65,7 +65,7 @@ class SmoothController {
                 array_shift($vars);
             }
             
-            $url = $this->url($url, $vars);
+            $url = $this->url(substr($url, 6), $vars);
         }
         
         $this->response->header('Location', $url);
