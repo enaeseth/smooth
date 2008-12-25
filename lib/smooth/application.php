@@ -84,6 +84,8 @@ class SmoothApplication {
                 $request->request_uri.'" was not found on this server.', 404);
         }
         
+        $this->callMiddleware($request, $response);
+        
         $controller = $route['controller'];
         $controller_class = $this->loadController($controller);
         try {
@@ -99,8 +101,6 @@ class SmoothApplication {
                 'inherit from SmoothController.', $route['controller'],
                 $controller_class, $this->getControllerPath($controller));
         }
-        
-        $this->callMiddleware($request, $response);
         
         $action = $route['action'];
         try {
