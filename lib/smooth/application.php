@@ -239,7 +239,11 @@ class SmoothApplication {
         
         $page_title = $subtitle = "HTTP Error $code";
         $title = $error->getMessage();
+        $proto = (!empty($_SERVER['SERVER_PROTOCOL']))
+            ? $_SERVER['SERVER_PROTOCOL']
+            : 'HTTP/1.0';
         
+        header("$proto $code {$error->getDescription()}");
         @header('Content-Type: text/html; charset=utf-8');
         include smooth_path('templates', 'error.php');
     }
