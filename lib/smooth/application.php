@@ -294,15 +294,20 @@ class SmoothApplication {
     }
     
     private function loadConfiguration($environment) {
+        $this->config->merge(self::getConfiguration($this->root, $environment));
+    }
+    
+    public static function getConfiguration($root, $environment) {
         $exts = '{yml,yaml,conf}';
+        $conf = new SmoothConfiguration();
         
         foreach (array('{app,application}', $environment) as $source) {
             $file = "$source.$exts";
-            $pattern = path_join($this->root, '{config,configuration}', $file);
+            $pattern = path_join($root, '{config,configuration}', $file);
 
             $files = glob($pattern, GLOB_BRACE);
             if (!$files) {
-                $files = glob(path_join($this->root, $file), GLOB_BRACE);
+                $files = glob(path_join($root, $file), GLOB_BRACE);
             }
 
             if (!$files)
@@ -312,9 +317,10 @@ class SmoothApplication {
                 throw new SmoothSetupException('Configuration file "'.
                     $files[0].'" is not readable.');
             }
-            $this->config->merge(yaml_load($files[0]));
+            $conf->merge(yaml_load($files[0]));
         }
         
+        return $conf;
     }
 }
 
