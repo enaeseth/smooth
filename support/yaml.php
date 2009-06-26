@@ -4,13 +4,14 @@ function yaml_load($source) {
     return Spyc::YAMLLoad($source);
 }
 
-function yaml_dump($array, $indent=null, $wrap=null) {
+function yaml_dump($array, $indent=null, $wrap=null, $streamed=false) {
     if ($indent === null)
         $indent = false;
     if ($wrap === null)
         $wrap = 78;
     
-    return Spyc::YAMLDump($array, $indent, $wrap);
+    $val = Spyc::YAMLDump($array, $indent, $wrap);
+    return ($streamed) ? $val : str_replace("---\n", '', $val);
 }
 
 /**
